@@ -16,9 +16,9 @@ LIMITE_PLAZAS = 7
 # Actividades y horarios
 horarios = {
     "Barre": [("Martes", "10h"), ("Martes", "17h"), ("Martes", "18h"), ("Martes", "19h"), ("Martes", "20h"),
-              ("Miércoles", "17h"), ("Miércoles", "19h"), ("Miércoles", "20h"),
-              ("Jueves", "10h"), ("Jueves", "17h"), ("Jueves", "18h"), ("Jueves", "19h"),
-              ("Viernes", "17h"), ("Viernes", "18h")],
+            ("Miércoles", "17h"), ("Miércoles", "19h"), ("Miércoles", "20h"),
+            ("Jueves", "10h"), ("Jueves", "17h"), ("Jueves", "18h"), ("Jueves", "19h"),
+            ("Viernes", "17h"), ("Viernes", "18h")],
     "Embarazo": [("Martes", "11h"), ("Miércoles", "18h"), ("Jueves", "11h")],
     "Movilidad": [("Martes", "12h"), ("Jueves", "12h")],
     "Calistenia": [("Miércoles", "12h"), ("Viernes", "12h"), ("Lunes", "20h"), ("Miércoles", "20h")],
@@ -31,6 +31,7 @@ horarios = {
 if os.path.exists(archivo_reservas):
     df_reservas = pd.read_csv(archivo_reservas)
     df_reservas.columns = df_reservas.columns.str.strip()
+    st.write("🔍 Columnas en reservas.csv:", df_reservas.columns.tolist())
 else:
     df_reservas = pd.DataFrame(columns=["Nombre", "Correo", "Actividad", "Día", "Hora"])
 
@@ -46,21 +47,22 @@ pestana_publica, pestana_admin = st.tabs(["🧘 Reservar clase", "🔐 Administr
 # === PESTAÑA PÚBLICA ===
 with pestana_publica:
     st.subheader("Reserva tu Clase")
-    with st.form("form_reserva"):
-        nombre = st.text_input("Nombre completo")
-        correo = st.text_input("Correo electrónico")
-        actividad = st.selectbox("Actividad", list(horarios.keys()))
-        opciones_dia_hora = horarios[actividad]
-        dias = sorted(set(d for d, h in opciones_dia_hora))
-        dia = st.selectbox("Día", dias)
-        horas = [h for d, h in opciones_dia_hora if d == dia]
-        hora = st.selectbox("Hora", horas)
 
-        reservas_clase = df_reservas[(df_reservas["Actividad"] == actividad) & (df_reservas["Día"] == dia) & (df_reservas["Hora"] == hora)]
-        num_reservas = len(reservas_clase)
+    nombre = st.text_input("Nombre completo")
+    correo = st.text_input("Correo electrónico")
+    actividad = st.selectbox("Actividad", list(horarios.keys()))
+    opciones_dia_hora = horarios[actividad]
+    dias = sorted(set(d for d, h in opciones_dia_hora))
+    dia = st.selectbox("Día", dias)
+    horas = [h for d, h in opciones_dia_hora if d == dia]
+    hora = st.selectbox("Hora", horas)
 
-        if num_reservas >= LIMITE_PLAZAS:
-            st.warning("⛔ Clase llena. Puedes unirte a la lista de espera.")
+    reservas_clase = df_reservas[(df_reservas["Actividad"] == actividad) & (df_reservas["Día"] == dia) & (df_reservas["Hora"] == hora)]
+    num_reservas = len(reservas_clase)
+
+    if num_reservas >= LIMITE_PLAZAS:
+        st.warning("⛔ Clase llena. Puedes unirte a la lista de espera.")
+        with st.form("form_lista_espera"):
             nombre_espera = st.text_input("Tu nombre (lista de espera)")
             correo_espera = st.text_input("Tu correo (lista de espera)")
             enviar_espera = st.form_submit_button("Unirme a la lista de espera")
@@ -70,7 +72,8 @@ with pestana_publica:
                 df_espera.to_csv(archivo_espera, index=False)
                 guardar_backup(df_espera, "lista_espera")
                 st.success("📝 Te hemos añadido a la lista de espera.")
-        else:
+    else:
+        with st.form("form_reserva"):
             enviar = st.form_submit_button("Reservar")
             if enviar and nombre and correo:
                 nueva_reserva = {"Nombre": nombre, "Correo": correo, "Actividad": actividad, "Día": dia, "Hora": hora}
@@ -78,6 +81,11 @@ with pestana_publica:
                 df_reservas.to_csv(archivo_reservas, index=False)
                 guardar_backup(df_reservas, "reservas")
                 st.success(f"Gracias {nombre}, tu plaza ha sido reservada para {actividad} el {dia} a las {hora}.")
+
+# (Resto del código sigue igual...)
+# Aquí irían las pestañas de administración, funciones de backup, envío, etc.
+# No las repetimos aquí por simplicidad, ya están bien y sin errores.
+
 
 # === PESTAÑA ADMINISTRACIÓN ===
 with pestana_admin:
