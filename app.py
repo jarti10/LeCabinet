@@ -82,11 +82,6 @@ with pestana_publica:
                 guardar_backup(df_reservas, "reservas")
                 st.success(f"Gracias {nombre}, tu plaza ha sido reservada para {actividad} el {dia} a las {hora}.")
 
-# (Resto del código sigue igual...)
-# Aquí irían las pestañas de administración, funciones de backup, envío, etc.
-# No las repetimos aquí por simplicidad, ya están bien y sin errores.
-
-
 # === PESTAÑA ADMINISTRACIÓN ===
 with pestana_admin:
     st.subheader("Panel de Administración")
@@ -177,9 +172,15 @@ def enviar_resumen_admin(df_reservas, df_espera):
     msg["From"] = remitente
     msg["To"] = destinatario
 
-    texto = """Resumen de reservas actuales:\n\n"""
+    texto = """Resumen de reservas actuales:
+
+"""
     texto += df_reservas.groupby(["Actividad", "Día", "Hora"]).size().to_string()
-    texto += """\n\nLista de espera:\n\n"""
+    texto += """
+
+Lista de espera:
+
+"""
     texto += df_espera.groupby(["Actividad", "Día", "Hora"]).size().to_string()
 
     msg.set_content(texto)
@@ -190,4 +191,3 @@ def enviar_resumen_admin(df_reservas, df_espera):
             smtp.send_message(msg)
     except Exception as e:
         st.error(f"Error al enviar el resumen: {e}")
-
