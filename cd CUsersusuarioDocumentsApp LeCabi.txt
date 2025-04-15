@@ -1,0 +1,17 @@
+cd "C:\Users\usuario\Documents\App LeCabinet"
+
+streamlit run app.py
+
+
+
+julioinigo.artinano@alumni.mondragon.edu
+
+git config --global user.email "julioinigo.artinano@alumni.mondragon.edu"
+git config --global user.name "jarti10"
+
+
+
+###actualizar app 
+git add .
+git commit -m "Actualización: backups automáticos y envío de resumen semanal"
+git push origin main
