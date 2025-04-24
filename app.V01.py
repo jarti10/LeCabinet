@@ -44,7 +44,7 @@ def registrar_usuario(username, password, nombre, email):
     if username in df["username"].values:
         return False  # Usuario ya existe
     nuevo_usuario = pd.DataFrame([[username, password, nombre, email]],
-                                columns=["username", "password", "nombre", "email"])
+                                 columns=["username", "password", "nombre", "email"])
     df = pd.concat([df, nuevo_usuario], ignore_index=True)
     df.to_excel(DB_FILE, index=False, sheet_name=SHEET_NAME)
     return True
@@ -69,9 +69,9 @@ if not st.session_state.logueado:
     # ----- Pestaña Login -----
     with tabs[0]:
         st.subheader("Iniciar sesión")
-        user = st.text_input("Usuario", key="login_user")
-        pwd = st.text_input("Contraseña", type="password", key="login_pwd")
-        if st.button("Entrar", key="login_button"):
+        user = st.text_input("Usuario")
+        pwd = st.text_input("Contraseña", type="password")
+        if st.button("Entrar"):
             if usuario_valido(user, pwd):
                 st.session_state.logueado = True
                 st.session_state.usuario = user
@@ -82,11 +82,11 @@ if not st.session_state.logueado:
     # ----- Pestaña Registro -----
     with tabs[1]:
         st.subheader("Registro de nuevo usuario")
-        nuevo_user = st.text_input("Nuevo usuario", key="reg_user")
-        nuevo_pwd = st.text_input("Contraseña", type="password", key="reg_pwd")
-        nombre = st.text_input("Nombre completo", key="reg_name")
-        email = st.text_input("Email", key="reg_email")
-        if st.button("Registrar", key="reg_button"):
+        nuevo_user = st.text_input("Nuevo usuario")
+        nuevo_pwd = st.text_input("Contraseña", type="password")
+        nombre = st.text_input("Nombre completo")
+        email = st.text_input("Email")
+        if st.button("Registrar"):
             if registrar_usuario(nuevo_user, nuevo_pwd, nombre, email):
                 st.success("¡Usuario creado con éxito! Ahora puedes iniciar sesión.")
             else:
@@ -112,7 +112,7 @@ else:
     ]
 
     # ---------- Selector de actividades ----------
-    seleccion = st.selectbox("Selecciona una actividad para ver su espacio de reservas:", actividades, key="actividad_selector")
+    seleccion = st.selectbox("Selecciona una actividad para ver su espacio de reservas:", actividades)
 
     # ---------- Crear pestañas por cada actividad ----------
     tabs = st.tabs(actividades)
@@ -126,6 +126,6 @@ else:
                 st.empty()
 
     # ---------- Botón de cerrar sesión ----------
-    if st.button("Cerrar sesión", key="logout_button"):
+    if st.button("Cerrar sesión"):
         st.session_state.logueado = False
         st.experimental_rerun()
