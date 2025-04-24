@@ -14,14 +14,14 @@ st.set_page_config(page_title="LaCabina", layout="centered")
 # =============================
 # 🔐 CONECTAR CON GOOGLE SHEETS
 # =============================
-def conectar_hoja(sheet_name="usuarios"):
+def conectar_hoja():
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
     ]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["google_service_account"], scope)
     client = gspread.authorize(creds)
-    sheet = client.open(sheet_name).sheet1
+    sheet = client.open_by_key("1Iq-HAZgiG4SnZdsZ020MKozUX_KUubNZ773CxVJLo3E").sheet1
     return sheet
 
 # =============================
