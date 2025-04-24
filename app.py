@@ -2,9 +2,9 @@
 # 🧩 IMPORTACIÓN DE LIBRERÍAS
 # =============================
 import streamlit as st
-import pandas as pd
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from PIL import Image
-import os
 
 # =============================
 # ⚙️ CONFIGURACIÓN DE LA APP
@@ -12,48 +12,45 @@ import os
 st.set_page_config(page_title="LaCabina", layout="centered")
 
 # =============================
-# 📁 RUTAS Y ARCHIVOS
+# 🔐 CONECTAR CON GOOGLE SHEETS
 # =============================
-DB_FILE = "usuarios.xlsx"          # Archivo Excel donde se guardan los usuarios
-SHEET_NAME = "usuarios"            # Nombre de la hoja de Excel
-
-# ========================================================
-# 📄 INICIALIZACIÓN: crea la base de datos si no existe
-# ========================================================
-if not os.path.exists(DB_FILE):
-    df_init = pd.DataFrame(columns=["username", "password", "nombre", "email"])
-    df_init.to_excel(DB_FILE, index=False, sheet_name=SHEET_NAME)
+def conectar_hoja(sheet_name="usuarios"):
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["google_service_account"], scope)
+    client = gspread.authorize(creds)
+    sheet = client.open(sheet_name).sheet1
+    return sheet
 
 # =============================
-# 🧠 FUNCIONES DE AUTENTICACIÓN
+# 🧠 FUNCIONES DE USUARIO
 # =============================
-
-# Carga los datos de usuarios desde el archivo Excel
 def cargar_usuarios():
-    return pd.read_excel(DB_FILE, sheet_name=SHEET_NAME)
+    sheet = conectar_hoja()
+    records = sheet.get_all_records()
+    return records
 
-# Verifica si un usuario y contraseña son válidos
 def usuario_valido(username, password):
-    df = cargar_usuarios()
-    user = df[(df["username"] == username) & (df["password"] == password)]
-    return not user.empty
+    users = cargar_usuarios()
+    for user in users:
+        if user["username"] == username and user["password"] == password:
+            return True
+    return False
 
-# Registra un nuevo usuario si no existe aún
 def registrar_usuario(username, password, nombre, email):
-    df = cargar_usuarios()
-    if username in df["username"].values:
-        return False  # Usuario ya existe
-    nuevo_usuario = pd.DataFrame([[username, password, nombre, email]],
-                                columns=["username", "password", "nombre", "email"])
-    df = pd.concat([df, nuevo_usuario], ignore_index=True)
-    df.to_excel(DB_FILE, index=False, sheet_name=SHEET_NAME)
+    users = cargar_usuarios()
+    if any(user["username"] == username for user in users):
+        return False
+    sheet = conectar_hoja()
+    sheet.append_row([username, password, nombre, email])
     return True
 
 # ===================================
 # 🔐 SISTEMA DE LOGIN / REGISTRO
 # ===================================
 
-# Estado de sesión: si no está definido, lo inicializa
 if "logueado" not in st.session_state:
     st.session_state.logueado = False
 
@@ -99,7 +96,7 @@ else:
     # ---------- Mostrar logo grande ----------
     logo = Image.open("LOGO CUADRADO.jpg")
     st.image(logo, use_column_width=True)
-    st.markdown("##")  # Espacio debajo del logo
+    st.markdown("##")
 
     # ---------- Actividades disponibles ----------
     actividades = [
@@ -122,8 +119,6 @@ else:
             if seleccion == actividad:
                 st.markdown(f"## 🗓️ Has seleccionado: **{actividad}**")
                 st.info("Aquí se mostrará la interfaz de reservas para esta actividad (en desarrollo).")
-            else:
-                st.empty()
 
     # ---------- Botón de cerrar sesión ----------
     if st.button("Cerrar sesión", key="logout_button"):
